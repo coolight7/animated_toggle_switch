@@ -359,10 +359,10 @@ class _CustomAnimatedToggleSwitchState<T>
   late final AnimationController _appearingController;
 
   /// The [Animation] for the movement of the indicator.
-  late final CurvedAnimation _animation;
+  late Animation<double> _animation;
 
   /// The [Animation] for the appearing of the indicator.
-  late final CurvedAnimation _appearingAnimation;
+  late Animation<double> _appearingAnimation;
 
   /// The current state of the movement of the indicator.
   late _AnimationInfo _animationInfo;
@@ -400,9 +400,10 @@ class _CustomAnimatedToggleSwitchState<T>
             }
           });
 
-    _animation =
-        CurvedAnimation(parent: _controller, curve: widget.animationCurve)
-          ..addListener(_callPositionListener);
+    _animation = CurveTween(curve: widget.animationCurve).animate(
+      _controller,
+    );
+    _animation.addListener(_callPositionListener);
 
     _appearingController = AnimationController(
       vsync: this,
@@ -410,10 +411,8 @@ class _CustomAnimatedToggleSwitchState<T>
       value: isValueSelected ? 1.0 : 0.0,
     );
 
-    _appearingAnimation = CurvedAnimation(
-      parent: _appearingController,
-      curve: widget.indicatorAppearingCurve,
-    );
+    _appearingAnimation = CurveTween(curve: widget.indicatorAppearingCurve)
+        .animate(_appearingController);
   }
 
   @override
@@ -447,9 +446,10 @@ class _CustomAnimatedToggleSwitchState<T>
     _checkForUnlistedValue();
 
     _appearingController.duration = widget.indicatorAppearingDuration;
-    _appearingAnimation.curve = widget.indicatorAppearingCurve;
+    _appearingAnimation = CurveTween(curve: widget.indicatorAppearingCurve)
+        .animate(_appearingController);
     _controller.duration = widget.animationDuration;
-    _animation.curve = widget.animationCurve;
+    _animation = CurveTween(curve: widget.animationCurve).animate(_controller);
 
     if (oldWidget.active && !widget.active) {
       _cancelDrag();
@@ -938,7 +938,8 @@ class _CustomAnimatedToggleSwitchState<T>
         _setAnimationInfo(_animationInfo.toEnd(index.toDouble(),
             current: current ?? _animationInfo.valueAt(_animation.value)));
         _controller.duration = widget.animationDuration;
-        _animation.curve = widget.animationCurve;
+        _animation =
+            CurveTween(curve: widget.animationCurve).animate(_controller);
         _controller.forward(from: 0.0);
       }
     } else {
@@ -953,7 +954,7 @@ class _CustomAnimatedToggleSwitchState<T>
     if (!_isActive) return;
     _setAnimationInfo(_animationInfo.dragged(indexPosition, pos: pos));
     _controller.duration = widget.dragStartDuration;
-    _animation.curve = widget.dragStartCurve;
+    _animation = CurveTween(curve: widget.dragStartCurve).animate(_controller);
     _controller.forward(from: 0.0);
   }
 
